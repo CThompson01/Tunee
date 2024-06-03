@@ -28,14 +28,23 @@ async def on_ready():
 	print("Tunee is online and ready to receive requests!")
 
 @tunee.command(pass_context=True)
-async def play(ctx, args=None):
+async def play(ctx, video=None):
+	"""
+	This command will play either the video from the YouTube link provided or if no
+	link is provided, it will play the first search result using the text provided
+
+	Parameters
+	----------
+	video : str, optional
+		Either the link to a video or text used to search for a video
+	"""
 	# Send a warning message about using the command properly and exit
-	if (args is None):
+	if (video is None):
 		await ctx.send("To play a song you must either provide a YouTube link or text to search.\nFor example, try typing \n```-play moan bark fart``` or ```-play https://www.youtube.com/watch?v=n5YHJMdN9FE```")
 		return
 
 	# Actually add the song to queue
-	print(f"Adding to queue: {args}")
+	print(f"Adding to queue: {video}")
 	if (not play_queue):
 		if (ctx.author.voice):
 			channel = ctx.message.author.voice.channel
@@ -53,6 +62,9 @@ async def play(ctx, args=None):
 
 @tunee.command(pass_context=True)
 async def stop(ctx):
+	"""
+	Disconnects Tunee from the call and clears the queue of videos
+	"""
 	# Disconnect from voice client
 	if (ctx.voice_client):
 		await ctx.guild.voice_client.disconnect()
