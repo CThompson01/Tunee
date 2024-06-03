@@ -28,7 +28,13 @@ async def on_ready():
 	print("Tunee is online and ready to receive requests!")
 
 @tunee.command(pass_context=True)
-async def play(ctx, args):
+async def play(ctx, args=None):
+	# Send a warning message about using the command properly and exit
+	if (args is None):
+		await ctx.send("To play a song you must either provide a YouTube link or text to search.\nFor example, try typing \n```-play moan bark fart``` or ```-play https://www.youtube.com/watch?v=n5YHJMdN9FE```")
+		return
+
+	# Actually add the song to queue
 	print(f"Adding to queue: {args}")
 	if (not play_queue):
 		if (ctx.author.voice):
