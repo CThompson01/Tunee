@@ -1,15 +1,15 @@
+# Standard Imports
+import subprocess
+import asyncio
+
+# Dev Environment
+import os
+from dotenv import load_dotenv
+
 # Discord Bot
 import discord
 from discord.ext import commands
 from discord import FFmpegPCMAudio
-import asyncio
-
-# Audio Formatting Junk
-import subprocess
-
-# Dev Environment
-from dotenv import load_dotenv
-import os
 
 # Get env variables
 load_dotenv()
