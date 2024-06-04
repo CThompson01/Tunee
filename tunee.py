@@ -53,12 +53,12 @@ async def play(ctx, video=None):
 				voice = await channel.connect()
 			else:
 				voice = ctx.message.guild.voice_client
-			play_queue.append("test_audio/mbf.wav")
+			play_queue.append(f"test_audio/{video}.wav")
 			await run_through_queue(voice, channel)
 		else:
 			await ctx.send("You are not in a voice channel, you must be in a voice channel to play audio!")
 	else:
-		play_queue.append("mbf.wav")
+		play_queue.append(f"test_audio/{video}.wav")
 
 @tunee.command(pass_context=True)
 async def stop(ctx):
@@ -75,17 +75,26 @@ async def stop(ctx):
 		print(f"Removing from queue: {play_queue.pop(0)}")
 
 def get_length(input_video):
-    result = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', input_video], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    return float(result.stdout)
+	"""
+	Uses ffprobe to get the length in seconds of the current video.
+	This is used by run_through_queue to properly wait until the current video is ended before starting the next one.
+	"""
+	result = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', input_video], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	return float(result.stdout)
 
 async def run_through_queue(voice, channel):
+	"""
+	Enters a while loop that continues until the play queue is empty.
+	This allows for users to add more videos to the queue without disrupting the current video.
+	"""
 	while play_queue:
-		print(f"Now playing: {play_queue[0]}")
-		source = FFmpegPCMAudio(play_queue[0])
+		play_file = play_queue[0]
+		file_length = get_length(play_file)
+		print(f"Now playing: {play_file}({file_length} seconds)")
+		source = FFmpegPCMAudio(play_file)
 		player = voice.play(source)
-		# sleep and wait for audio to finish before repeating and moving on to the next audio
-		await asyncio.sleep(3) # TODO make this the actual length of the audio
-		play_queue.pop(0)
+		await asyncio.sleep(file_length) # wait for audio to finish before moving on to next audio
+		play_queue.pop(0) # Probably fix this eventually but because of the while loop can't pop 0 without it exiting
 	return
 
 tunee.run(tunee_token)
