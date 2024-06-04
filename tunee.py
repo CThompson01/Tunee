@@ -79,8 +79,8 @@ def get_length(input_video):
 	Uses ffprobe to get the length in seconds of the current video.
 	This is used by run_through_queue to properly wait until the current video is ended before starting the next one.
 	"""
-    result = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', input_video], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    return float(result.stdout)
+	result = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', input_video], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	return float(result.stdout)
 
 async def run_through_queue(voice, channel):
 	"""
