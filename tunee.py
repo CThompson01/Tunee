@@ -97,4 +97,5 @@ async def run_through_queue(voice, channel):
 		play_queue.pop(0) # Probably fix this eventually but because of the while loop can't pop 0 without it exiting
 	return
 
-tunee.run(tunee_token)
+if __name__ == "__main__":
+	tunee.run(tunee_token)
