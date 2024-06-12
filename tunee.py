@@ -6,6 +6,7 @@ import asyncio
 
 # Audio Formatting Junk
 import subprocess
+import youtube_dl
 
 # Dev Environment
 from dotenv import load_dotenv
@@ -74,14 +75,6 @@ async def stop(ctx):
 	while play_queue:
 		print(f"Removing from queue: {play_queue.pop(0)}")
 
-def get_length(input_video):
-	"""
-	Uses ffprobe to get the length in seconds of the current video.
-	This is used by run_through_queue to properly wait until the current video is ended before starting the next one.
-	"""
-	result = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', input_video], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	return float(result.stdout)
-
 async def run_through_queue(voice, channel):
 	"""
 	Enters a while loop that continues until the play queue is empty.
@@ -96,5 +89,33 @@ async def run_through_queue(voice, channel):
 		await asyncio.sleep(file_length) # wait for audio to finish before moving on to next audio
 		play_queue.pop(0) # Probably fix this eventually but because of the while loop can't pop 0 without it exiting
 	return
+
+def dl_video(url_search):
+	ytdl_opts = {
+		'format': 'bestaudio/best',
+		'postprocessors': [{
+			'key': 'FFmpegExtractAudio',
+			'preferredcodec': 'mp3',
+			'preferredquality': '192',
+		}],
+		'outtmpl': 'queue/%(title)s.%(ext)s',
+	}
+	with youtube_dl.YoutubeDL(ytdl_opts) as ytdl:
+		meta_data = ytdl.extract_info(url_search, download=True)
+		return meta_data.get('title', None)
+
+def get_length(input_video):
+	"""
+	Uses ffprobe to get the length in seconds of the current video.
+	This is used by run_through_queue to properly wait until the current video is ended before starting the next one.
+	"""
+	result = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', input_video], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	return float(result.stdout)
+
+def is_url(url_str):
+	"""
+	Check whether the argument given is a URL or just a string to search
+	"""
+	return "https:" in url_str or "http:" in url_str # TODO: implement this better
 
 tunee.run(tunee_token)
