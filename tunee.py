@@ -5,6 +5,7 @@ This is a Discord bot that plays YouTube videos in voice channels.
 # Standard Imports
 import subprocess
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import random
 
 # Dev Environment
@@ -22,6 +23,7 @@ import youtube_dl
 # Get env variables
 load_dotenv()
 tunee_token = os.getenv("TUNEE_TOKEN")
+# tunee_token = os.getenv("BETA_TOKEN")
 
 # Set up intents
 intents = discord.Intents.default()
@@ -40,7 +42,7 @@ async def on_ready():
 	print("Tunee is online and ready to receive requests!")
 
 @tunee.command(pass_context=True)
-async def play(ctx, video=None):
+async def play(ctx, *, video=None):
 	"""
 	This command will play either the video from the YouTube link provided or if no
 	link is provided, it will play the first search result using the text provided
@@ -59,7 +61,8 @@ async def play(ctx, video=None):
 		return
 
 	# Download the song so it's ready to go
-	video_data = dl_video(video)
+	loop = asyncio.get_running_loop()
+	video_data = await loop.run_in_executor(None, dl_video, video)
 
 	# Actually add the song to queue
 	print(f"Adding to queue: {video}")
@@ -71,12 +74,12 @@ async def play(ctx, video=None):
 				voice = await channel.connect()
 			else:
 				voice = ctx.message.guild.voice_client
-			play_queue.append(f"test_audio/{video}.wav")
+			play_queue.append(video_data['file_location'])
 			await run_through_queue(voice)
 		else:
 			await ctx.send("You are not in a voice channel, you must be in a voice channel to play audio!")
 	else:
-		play_queue.append(f"test_audio/{video}.wav")
+		play_queue.append(video_data['file_location'])
 
 @tunee.command(pass_context=True)
 async def stop(ctx):
@@ -90,7 +93,9 @@ async def stop(ctx):
 		await ctx.send("I am not in a voice channel!")
 	# Empty out the play_queue
 	while play_queue:
-		print(f"Removing from queue: {play_queue.pop(0)}")
+		removed_video = play_queue.pop(0)
+		os.remove(removed_video)
+		print(f"Removing from queue: {removed_video}")
 
 def get_length(input_video):
 	"""
