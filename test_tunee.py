@@ -21,4 +21,5 @@ def test_get_length(audio_file):
 	"""
 	length = tunee.get_length(f'{TEST_AUDIO_DIR}/{audio_file}')
 	expected_length = TEST_AUDIO_LENGTHS[audio_file]
-	assert expected_length <= length <= expected_length+1
+	# assert expected_length <= length <= expected_length+1
+	assert False
