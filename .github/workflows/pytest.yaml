@@ -1,4 +1,4 @@
-name: Pylint
+name: pytest
 
 on: [pull_request]
 
@@ -20,4 +20,4 @@ jobs:
         pip install python-dotenv discord.py[voice] pylint pytest
     - name: Analysing the code with pylint
       run: |
-        pylint $(git ls-files '*.py')
+        pytest -s

@@ -1,5 +1,10 @@
+"""
+pytest file that tests the helper functions for Tunee
+"""
+
+import os
 import pytest
-from tunee import *
+import tunee
 
 TEST_AUDIO_DIR = 'test_audio/'
 TEST_AUDIO_LENGTHS = {
@@ -9,6 +14,11 @@ TEST_AUDIO_LENGTHS = {
 
 @pytest.mark.parametrize("audio_file", os.listdir(TEST_AUDIO_DIR))
 def test_get_length(audio_file):
-	length = get_length(f'{TEST_AUDIO_DIR}/{audio_file}')
+	"""
+	Test the get_length function with all audio stored in TEST_AUDIO_DIR
+	When adding new test audios, make sure to update TEST_AUDIO_LENGTHS
+	as that is the dictionary used for the expected values
+	"""
+	length = tunee.get_length(f'{TEST_AUDIO_DIR}/{audio_file}')
 	expected_length = TEST_AUDIO_LENGTHS[audio_file]
-	assert length >= expected_length and length <= expected_length+1
+	assert expected_length <= length <= expected_length+1
