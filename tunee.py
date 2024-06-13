@@ -1,16 +1,22 @@
+"""
+This is a Discord bot that plays YouTube videos in voice channels.
+"""
+
+# Standard Imports
+import subprocess
+import asyncio
+
+# Dev Environment
+import os
+from dotenv import load_dotenv
+
 # Discord Bot
 import discord
 from discord.ext import commands
 from discord import FFmpegPCMAudio
-import asyncio
 
 # Audio Formatting Junk
-import subprocess
 import youtube_dl
-
-# Dev Environment
-from dotenv import load_dotenv
-import os
 
 # Get env variables
 load_dotenv()
@@ -26,6 +32,10 @@ play_queue = []
 
 @tunee.event
 async def on_ready():
+	"""
+	Function called once the bot is logged in and ready to receive commands.
+	Prints a message to the terminal letting the user know the bot is online.
+	"""
 	print("Tunee is online and ready to receive requests!")
 
 @tunee.command(pass_context=True)
@@ -40,22 +50,25 @@ async def play(ctx, video=None):
 		Either the link to a video or text used to search for a video
 	"""
 	# Send a warning message about using the command properly and exit
-	if (video is None):
-		await ctx.send("To play a song you must either provide a YouTube link or text to search.\nFor example, try typing \n```-play moan bark fart``` or ```-play https://www.youtube.com/watch?v=n5YHJMdN9FE```")
+	if video is None:
+		await ctx.send(
+			"To play a song you must either provide a YouTube link or text to search.\n\n" +
+			"For example, try typing\n" +
+			"```-play moan bark fart``` or ```-play https://www.youtube.com/watch?v=n5YHJMdN9FE```")
 		return
 
 	# Actually add the song to queue
 	print(f"Adding to queue: {video}")
-	if (not play_queue):
-		if (ctx.author.voice):
+	if not play_queue:
+		if ctx.author.voice:
 			channel = ctx.message.author.voice.channel
 			voice = None
-			if (not ctx.voice_client):
+			if not ctx.voice_client:
 				voice = await channel.connect()
 			else:
 				voice = ctx.message.guild.voice_client
 			play_queue.append(f"test_audio/{video}.wav")
-			await run_through_queue(voice, channel)
+			await run_through_queue(voice)
 		else:
 			await ctx.send("You are not in a voice channel, you must be in a voice channel to play audio!")
 	else:
@@ -67,7 +80,7 @@ async def stop(ctx):
 	Disconnects Tunee from the call and clears the queue of videos
 	"""
 	# Disconnect from voice client
-	if (ctx.voice_client):
+	if ctx.voice_client:
 		await ctx.guild.voice_client.disconnect()
 	else:
 		await ctx.send("I am not in a voice channel!")
@@ -75,7 +88,18 @@ async def stop(ctx):
 	while play_queue:
 		print(f"Removing from queue: {play_queue.pop(0)}")
 
-async def run_through_queue(voice, channel):
+def get_length(input_video):
+	"""
+	Uses ffprobe to get the length in seconds of the current video.
+	This is used by run_through_queue to properly wait until the current video
+	is ended before starting the next one.
+	"""
+	result = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of',
+		'default=noprint_wrappers=1:nokey=1', input_video], stdout=subprocess.PIPE,
+		stderr=subprocess.STDOUT, check=True)
+	return float(result.stdout)
+
+async def run_through_queue(voice):
 	"""
 	Enters a while loop that continues until the play queue is empty.
 	This allows for users to add more videos to the queue without disrupting the current video.
@@ -85,9 +109,9 @@ async def run_through_queue(voice, channel):
 		file_length = get_length(play_file)
 		print(f"Now playing: {play_file}({file_length} seconds)")
 		source = FFmpegPCMAudio(play_file)
-		player = voice.play(source)
+		voice.play(source)
 		await asyncio.sleep(file_length) # wait for audio to finish before moving on to next audio
-		play_queue.pop(0) # Probably fix this eventually but because of the while loop can't pop 0 without it exiting
+		play_queue.pop(0) # Fix eventually can't pop 0 without it exiting
 	return
 
 def dl_video(url_search):
@@ -118,4 +142,5 @@ def is_url(url_str):
 	"""
 	return "https:" in url_str or "http:" in url_str # TODO: implement this better
 
-tunee.run(tunee_token)
+if __name__ == "__main__":
+	tunee.run(tunee_token)
