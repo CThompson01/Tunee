@@ -58,6 +58,9 @@ async def play(ctx, video=None):
 			"```-play moan bark fart``` or ```-play https://www.youtube.com/watch?v=n5YHJMdN9FE```")
 		return
 
+	# Download the song so it's ready to go
+	video_data = dl_video(video)
+
 	# Actually add the song to queue
 	print(f"Adding to queue: {video}")
 	if not play_queue:
@@ -116,6 +119,7 @@ async def run_through_queue(voice):
 	return
 
 def dl_video(url_search):
+	# Set up the dl options and file identifier
 	identifier = random.randrange(0, 9)
 	ytdl_opts = {
 		'format': 'bestaudio/best',
@@ -126,11 +130,18 @@ def dl_video(url_search):
 		}],
 		'outtmpl': 'queue/%(title)s-' + str(identifier) + '.%(ext)s',
 	}
+
+	# Download the video and return the dictionary of needed metadata
 	with youtube_dl.YoutubeDL(ytdl_opts) as ytdl:
-		meta_data = ytdl.extract_info(url_search, download=True)
+		video_data = None
+		if is_url(url_search):
+			video_data = ytdl.extract_info(url_search, download=True)
+		else:
+			meta_data = ytdl.extract_info(f'ytsearch1:{url_search}', download=True)
+			video_data = meta_data['entries'][0]
 		return {
-			'title': meta_data.get('title', None),
-			'file_location': f'queue/{meta_data.get('title', None)}-{identifier}.mp3'
+			'title': video_data.get('title', None),
+			'file_location': f'queue/{video_data.get('title', None)}-{identifier}.mp3'
 		}
 
 def get_length(input_video):

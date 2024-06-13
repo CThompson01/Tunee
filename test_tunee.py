@@ -13,8 +13,8 @@ TEST_AUDIO_LENGTHS = {
 }
 
 TEST_URLS = [{'string': "https://www.youtube.com/watch?v=n5YHJMdN9FE", 'expected': True},
-	# {'string': "MBF", 'expected': False},
-	# {'string': "beans beans beans", 'expected': False},
+	{'string': "teddy bear squeeze sound", 'expected': False},
+	{'string': "beans beans beans", 'expected': False},
 	{'string': "https://www.youtube.com/watch?v=XBtALgPwTfo", 'expected': True}
 ]
 
