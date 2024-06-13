@@ -5,6 +5,7 @@ This is a Discord bot that plays YouTube videos in voice channels.
 # Standard Imports
 import subprocess
 import asyncio
+import random
 
 # Dev Environment
 import os
@@ -115,6 +116,7 @@ async def run_through_queue(voice):
 	return
 
 def dl_video(url_search):
+	identifier = random.randrange(0, 9)
 	ytdl_opts = {
 		'format': 'bestaudio/best',
 		'postprocessors': [{
@@ -122,11 +124,14 @@ def dl_video(url_search):
 			'preferredcodec': 'mp3',
 			'preferredquality': '192',
 		}],
-		'outtmpl': 'queue/%(title)s.%(ext)s',
+		'outtmpl': 'queue/%(title)s-' + str(identifier) + '.%(ext)s',
 	}
 	with youtube_dl.YoutubeDL(ytdl_opts) as ytdl:
 		meta_data = ytdl.extract_info(url_search, download=True)
-		return meta_data.get('title', None)
+		return {
+			'title': meta_data.get('title', None),
+			'file_location': f'queue/{meta_data.get('title', None)}-{identifier}.mp3'
+		}
 
 def get_length(input_video):
 	"""
