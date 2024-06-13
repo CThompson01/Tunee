@@ -5,7 +5,6 @@ This is a Discord bot that plays YouTube videos in voice channels.
 # Standard Imports
 import subprocess
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import random
 
 # Dev Environment
@@ -124,6 +123,9 @@ async def run_through_queue(voice):
 	return
 
 def dl_video(url_search):
+	"""
+	Downloads the YouTube video provided by url_search and returns the file location
+	"""
 	# Set up the dl options and file identifier
 	identifier = random.randrange(0, 9)
 	ytdl_opts = {
@@ -148,14 +150,6 @@ def dl_video(url_search):
 			'title': video_data.get('title', None),
 			'file_location': f'queue/{video_data.get('title', None)}-{identifier}.mp3'
 		}
-
-def get_length(input_video):
-	"""
-	Uses ffprobe to get the length in seconds of the current video.
-	This is used by run_through_queue to properly wait until the current video is ended before starting the next one.
-	"""
-	result = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', input_video], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	return float(result.stdout)
 
 def is_url(url_str):
 	"""
